@@ -1,0 +1,140 @@
+/* ============================================
+   Habits Page Styles
+   ============================================ */
+
+/* Habit Cards Grid */
+.habits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 16px;
+}
+
+/* Habit Card */
+.habit-card {
+  background: var(--bg-white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  padding: 20px;
+  transition: box-shadow 0.2s;
+}
+
+.habit-card:hover {
+  box-shadow: var(--shadow);
+}
+
+.habit-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.habit-card-header h4 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.habit-card p.description {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+
+.habit-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+}
+
+.habit-meta .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+}
+
+.habit-meta .meta-icon {
+  font-size: 14px;
+}
+
+.habit-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border-light);
+}
+
+.habit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.habit-actions .btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+/* Add Habit Form */
+.form-card {
+  max-width: 640px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 8px;
+}
+
+/* Delete Confirmation */
+.delete-confirm {
+  text-align: center;
+}
+
+.delete-confirm .delete-icon {
+  font-size: 48px;
+  color: var(--danger);
+  margin-bottom: 12px;
+}
+
+.delete-confirm h4 {
+  margin-bottom: 8px;
+}
+
+.delete-confirm p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+/* No Results */
+.no-results {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-muted);
+}
+
+.no-results .no-results-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.no-results h4 {
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .habits-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .habit-meta {
+    grid-template-columns: 1fr;
+  }
+}
