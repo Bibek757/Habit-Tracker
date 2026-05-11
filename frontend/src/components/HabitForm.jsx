@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 
-function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit' }) {
+function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit', isLoading = false }) {
   const [formData, setFormData] = useState({
-    name: '',
+    habitName: '',
     description: '',
     category: '',
     startDate: '',
@@ -17,7 +17,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
   useEffect(() => {
     if (initialData) {
       setFormData({
-        name: initialData.name || '',
+        habitName: initialData.habitName || '',
         description: initialData.description || '',
         category: initialData.category || '',
         startDate: initialData.startDate || '',
@@ -39,7 +39,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.name.trim()) newErrors.name = 'Habit title is required';
+    if (!formData.habitName.trim()) newErrors.habitName = 'Habit title is required';
     if (!formData.category) newErrors.category = 'Please select a category';
     if (!formData.startDate) newErrors.startDate = 'Start date is required';
     setErrors(newErrors);
@@ -55,7 +55,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
 
   const handleReset = () => {
     setFormData({
-      name: '',
+      habitName: '',
       description: '',
       category: '',
       startDate: '',
@@ -74,13 +74,14 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
         <input
           type="text"
           id="habitTitle"
-          name="name"
+          name="habitName"
           className="form-control"
           placeholder="e.g., Morning Exercise"
-          value={formData.name}
+          value={formData.habitName}
           onChange={handleChange}
+          disabled={isLoading}
         />
-        {errors.name && <div className="form-error">{errors.name}</div>}
+        {errors.habitName && <div className="form-error">{errors.habitName}</div>}
       </div>
 
       <div className="form-group">
@@ -93,6 +94,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
           value={formData.description}
           onChange={handleChange}
           rows={3}
+          disabled={isLoading}
         />
       </div>
 
@@ -105,6 +107,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
             className="form-control"
             value={formData.category}
             onChange={handleChange}
+            disabled={isLoading}
           >
             <option value="">Select category</option>
             <option value="Health">Health</option>
@@ -124,6 +127,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
             className="form-control"
             value={formData.frequency}
             onChange={handleChange}
+            disabled={isLoading}
           >
             <option value="">Select frequency</option>
             <option value="Daily">Daily</option>
@@ -143,6 +147,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
             className="form-control"
             value={formData.startDate}
             onChange={handleChange}
+            disabled={isLoading}
           />
           {errors.startDate && <div className="form-error">{errors.startDate}</div>}
         </div>
@@ -156,6 +161,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
             className="form-control"
             value={formData.endDate}
             onChange={handleChange}
+            disabled={isLoading}
           />
         </div>
       </div>
@@ -170,6 +176,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
             className="form-control"
             value={formData.reminderTime}
             onChange={handleChange}
+            disabled={isLoading}
           />
         </div>
 
@@ -181,6 +188,7 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
             className="form-control"
             value={formData.priority}
             onChange={handleChange}
+            disabled={isLoading}
           >
             <option value="">Select priority</option>
             <option value="High">High</option>
@@ -191,11 +199,13 @@ function HabitForm({ initialData, onSubmit, onCancel, submitLabel = 'Save Habit'
       </div>
 
       <div className="form-actions">
-        <button type="submit" className="btn btn-primary">{submitLabel}</button>
+        <button type="submit" className="btn btn-primary" disabled={isLoading}>
+          {isLoading ? 'Saving...' : submitLabel}
+        </button>
         {onCancel ? (
-          <button type="button" className="btn btn-secondary" onClick={onCancel}>Cancel</button>
+          <button type="button" className="btn btn-secondary" onClick={onCancel} disabled={isLoading}>Cancel</button>
         ) : (
-          <button type="button" className="btn btn-secondary" onClick={handleReset}>Reset</button>
+          <button type="button" className="btn btn-secondary" onClick={handleReset} disabled={isLoading}>Reset</button>
         )}
       </div>
     </form>

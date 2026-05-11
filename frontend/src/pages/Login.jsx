@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
 import '../styles/auth.css';
 
 function Login() {
@@ -7,6 +8,7 @@ function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -14,7 +16,7 @@ function Login() {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -28,8 +30,33 @@ function Login() {
     }
 
     setErrors(newErrors);
+    
     if (Object.keys(newErrors).length === 0) {
-      navigate('/dashboard');
+       setIsLoading(true);
+       try {
+         const response = await authAPI.login({
+           email: formData.email,
+           password: formData.password
+         });
+
+         // Store token and user data
+         localStorage.setItem('token', response.token);
+         localStorage.setItem('user', JSON.stringify({
+           user_id: response.user_id,
+           full_name: response.full_name,
+           username: response.username,
+           email: response.email
+         }));
+
+         // Redirect to dashboard
+         navigate('/dashboard');
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
+        setErrors({ submit: errorMessage });
+        console.error('Login error:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -44,6 +71,8 @@ function Login() {
           </div>
 
           <form onSubmit={handleSubmit} id="loginForm">
+            {errors.submit && <div className="form-error" style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8d7da', borderRadius: '4px' }}>{errors.submit}</div>}
+            
             <div className="form-group">
               <label htmlFor="loginEmail">Email / Username</label>
               <input
@@ -54,6 +83,7 @@ function Login() {
                 placeholder="Enter your email or username"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={isLoading}
               />
               {errors.email && <div className="form-error">{errors.email}</div>}
             </div>
@@ -69,12 +99,14 @@ function Login() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleChange}
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   className="input-icon"
                   onClick={() => setShowPassword(!showPassword)}
                   title="Toggle password visibility"
+                  disabled={isLoading}
                 >
                   {showPassword ? '🙈' : '👁️'}
                 </button>
@@ -86,8 +118,8 @@ function Login() {
               <a href="#">Forgot Password?</a>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block btn-lg" id="loginBtn">
-              Login
+            <button type="submit" className="btn btn-primary btn-block btn-lg" id="loginBtn" disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Login'}
             </button>
           </form>
 

@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -11,8 +11,9 @@ import Profile from './pages/Profile';
 function AppRoutes() {
   return (
     <Routes>
-      {/* Auth Routes */}
+      {/* Auth Routes (Public) */}
       <Route path="/" element={<Login />} />
+      <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
 
       {/* App Routes */}
@@ -22,6 +23,9 @@ function AppRoutes() {
       <Route path="/edit-habit" element={<EditHabit />} />
       <Route path="/progress" element={<Progress />} />
       <Route path="/profile" element={<Profile />} />
+      
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

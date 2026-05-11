@@ -1,15 +1,53 @@
 import { useState, useEffect } from 'react';
+import { progressAPI } from '../services/api';
 import '../styles/dashboard.css';
 
 function Dashboard() {
   const [todayDate, setTodayDate] = useState('');
   const [calendarHtml, setCalendarHtml] = useState([]);
+  const [user, setUser] = useState(null);
+  const [stats, setStats] = useState({
+    total_habits: 0,
+    completed_today: 0,
+    pending_today: 0,
+    streak_count: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Get user from localStorage
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+
+    // Set today's date
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     setTodayDate(new Date().toLocaleDateString('en-US', options));
+
+    // Fetch stats
+    fetchStats();
     generateCalendar();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      setIsLoading(true);
+      const data = await progressAPI.getStats();
+      setStats(data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      // Use default stats if API fails
+      setStats({
+        total_habits: 0,
+        completed_today: 0,
+        pending_today: 0,
+        streak_count: 0,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const generateCalendar = () => {
     const now = new Date();
@@ -46,12 +84,16 @@ function Dashboard() {
   };
 
   const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const userName = user?.full_name?.split(' ')[0] || 'User';
+  const progressPercentage = stats.total_habits > 0
+    ? Math.round((stats.completed_today / stats.total_habits) * 100)
+    : 0;
 
   return (
     <>
       {/* Welcome Section */}
       <div className="welcome-section">
-        <h2>Welcome back, Bibek! 👋</h2>
+        <h2>Welcome back, {userName}! 👋</h2>
         <p id="todayDate">{todayDate}</p>
       </div>
 
@@ -60,28 +102,28 @@ function Dashboard() {
         <div className="stat-card">
           <div className="stat-icon blue">📋</div>
           <div className="stat-info">
-            <h4>12</h4>
+            <h4>{stats.total_habits}</h4>
             <p>Total Habits</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon green">✅</div>
           <div className="stat-info">
-            <h4>8</h4>
+            <h4>{stats.completed_today}</h4>
             <p>Completed Today</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon orange">⏳</div>
           <div className="stat-info">
-            <h4>4</h4>
+            <h4>{stats.pending_today}</h4>
             <p>Pending Today</p>
           </div>
         </div>
         <div className="stat-card">
           <div className="stat-icon red">🔥</div>
           <div className="stat-info">
-            <h4>14</h4>
+            <h4>{stats.streak_count}</h4>
             <p>Day Streak</p>
           </div>
         </div>
@@ -95,15 +137,17 @@ function Dashboard() {
           <div className="card" style={{ marginBottom: '20px' }}>
             <div className="card-header">
               <span>Today's Progress</span>
-              <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 400 }}>8 of 12 completed</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 400 }}>
+                {stats.completed_today} of {stats.total_habits} completed
+              </span>
             </div>
             <div className="card-body">
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                 <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Habit Completion</span>
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>67%</span>
+                <span style={{ fontSize: '13px', fontWeight: 600 }}>{progressPercentage}%</span>
               </div>
               <div className="progress-bar-container">
-                <div className="progress-bar" style={{ width: '67%' }}></div>
+                <div className="progress-bar" style={{ width: `${progressPercentage}%` }}></div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginTop: '16px' }}>
                 <div style={{ textAlign: 'center', padding: '12px', background: 'var(--success-light)', borderRadius: 'var(--radius-sm)' }}>

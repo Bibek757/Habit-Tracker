@@ -29,16 +29,16 @@ API.interceptors.request.use(
 
 // ---- Response Interceptor: Handle errors ----
 API.interceptors.response.use(
-  (response) => response.data,
+  (response) => response.data.data || response.data,
   (error) => {
     const message = error.response?.data?.message || 'Something went wrong';
     console.error('API Error:', message);
 
-    // If unauthorized, redirect to login
+    // If unauthorized, log out (but don't redirect, let the page handle it)
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/';
+      // Clear tokens but don't redirect automatically
+      // localStorage.removeItem('token');
+      // localStorage.removeItem('user');
     }
 
     return Promise.reject(error);

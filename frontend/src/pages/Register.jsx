@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { authAPI } from '../services/api';
 import '../styles/auth.css';
 
 function Register() {
@@ -14,6 +15,7 @@ function Register() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -21,7 +23,7 @@ function Register() {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = {};
 
@@ -46,9 +48,26 @@ function Register() {
     }
 
     setErrors(newErrors);
+
     if (Object.keys(newErrors).length === 0) {
-      alert('Registration successful! Redirecting to login...');
-      navigate('/');
+      setIsLoading(true);
+      try {
+        await authAPI.register({
+          full_name: formData.fullName,
+          email: formData.email,
+          username: formData.username,
+          password: formData.password,
+        });
+
+        // Redirect to login
+        navigate('/', { replace: true });
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
+        setErrors({ submit: errorMessage });
+        console.error('Registration error:', error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -63,6 +82,8 @@ function Register() {
           </div>
 
           <form onSubmit={handleSubmit} id="registerForm">
+            {errors.submit && <div className="form-error" style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8d7da', borderRadius: '4px' }}>{errors.submit}</div>}
+
             <div className="form-group">
               <label htmlFor="regFullname">Full Name</label>
               <input
@@ -73,6 +94,7 @@ function Register() {
                 placeholder="Enter your full name"
                 value={formData.fullName}
                 onChange={handleChange}
+                disabled={isLoading}
               />
               {errors.fullName && <div className="form-error">{errors.fullName}</div>}
             </div>
@@ -87,6 +109,7 @@ function Register() {
                 placeholder="Enter your email address"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={isLoading}
               />
               {errors.email && <div className="form-error">{errors.email}</div>}
             </div>
@@ -101,6 +124,7 @@ function Register() {
                 placeholder="Choose a username"
                 value={formData.username}
                 onChange={handleChange}
+                disabled={isLoading}
               />
               {errors.username && <div className="form-error">{errors.username}</div>}
             </div>
@@ -116,11 +140,13 @@ function Register() {
                   placeholder="Create a password"
                   value={formData.password}
                   onChange={handleChange}
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   className="input-icon"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
                 >
                   {showPassword ? '🙈' : '👁️'}
                 </button>
@@ -139,11 +165,13 @@ function Register() {
                   placeholder="Confirm your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   className="input-icon"
                   onClick={() => setShowConfirm(!showConfirm)}
+                  disabled={isLoading}
                 >
                   {showConfirm ? '🙈' : '👁️'}
                 </button>
@@ -151,8 +179,8 @@ function Register() {
               {errors.confirmPassword && <div className="form-error">{errors.confirmPassword}</div>}
             </div>
 
-            <button type="submit" className="btn btn-primary btn-block btn-lg" id="registerBtn">
-              Register
+            <button type="submit" className="btn btn-primary btn-block btn-lg" id="registerBtn" disabled={isLoading}>
+              {isLoading ? 'Creating account...' : 'Register'}
             </button>
           </form>
 

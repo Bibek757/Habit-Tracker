@@ -79,7 +79,7 @@ CREATE TABLE IF NOT EXISTS progress (
 
 -- Insert sample user (password: password123)
 INSERT INTO users (full_name, username, email, password) VALUES
-('Bibek Sharma', 'bibek_s', 'bibek.sharma@university.edu', '$2a$10$xJ8K3hQ7Nf5K9QRCG5Yj5OqZvE1Y5yK2F3L6M8NxPsR5T7Y9B3PG');
+('Test User', 'testuser', 'test@example.com', '$2a$10$xJ8K3hQ7Nf5K9QRCG5Yj5OqZvE1Y5yK2F3L6M8NxPsR5T7Y9B3PG');
 
 -- Insert sample habits
 INSERT INTO habits (user_id, habit_name, description, category, start_date, frequency, priority, status, streak_count) VALUES

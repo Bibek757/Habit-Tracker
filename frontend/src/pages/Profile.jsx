@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { userAPI } from '../services/api';
 import '../styles/profile.css';
 
 function Profile() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    fullName: 'Bibek Sharma',
-    email: 'bibek.sharma@university.edu',
-    username: 'bibek_s',
+    fullName: '',
+    email: '',
+    username: '',
   });
   const [showPasswordSection, setShowPasswordSection] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -15,6 +16,25 @@ function Profile() {
     newPassword: '',
     confirmNewPassword: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const fetchProfile = async () => {
+    try {
+      const data = await userAPI.getProfile();
+      setFormData({
+        fullName: data.full_name || '',
+        email: data.email || '',
+        username: data.username || '',
+      });
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -26,29 +46,83 @@ function Profile() {
     setPasswordData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleProfileUpdate = (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault();
-    alert('Profile updated successfully!');
+    setIsLoading(true);
+    try {
+      await userAPI.updateProfile({
+        full_name: formData.fullName,
+        email: formData.email,
+        username: formData.username,
+      });
+      // Update localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      user.full_name = formData.fullName;
+      user.email = formData.email;
+      user.username = formData.username;
+      localStorage.setItem('user', JSON.stringify(user));
+      alert('Profile updated successfully!');
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to update profile';
+      setErrors({ profile: errorMessage });
+      console.error('Error updating profile:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePasswordUpdate = (e) => {
+  const handlePasswordUpdate = async (e) => {
     e.preventDefault();
+    const newErrors = {};
+
+    if (!passwordData.currentPassword) {
+      newErrors.currentPassword = 'Current password is required';
+    }
+    if (!passwordData.newPassword) {
+      newErrors.newPassword = 'New password is required';
+    } else if (passwordData.newPassword.length < 6) {
+      newErrors.newPassword = 'Password must be at least 6 characters';
+    }
     if (passwordData.newPassword !== passwordData.confirmNewPassword) {
-      alert('New passwords do not match!');
+      newErrors.confirmNewPassword = 'Passwords do not match';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-    if (passwordData.newPassword.length < 6) {
-      alert('Password must be at least 6 characters!');
-      return;
+
+    setIsLoading(true);
+    try {
+      await userAPI.changePassword({
+        current_password: passwordData.currentPassword,
+        new_password: passwordData.newPassword,
+      });
+      alert('Password changed successfully!');
+      setShowPasswordSection(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
+      setErrors({});
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || 'Failed to change password';
+      setErrors({ password: errorMessage });
+      console.error('Error changing password:', error);
+    } finally {
+      setIsLoading(false);
     }
-    alert('Password changed successfully!');
-    setShowPasswordSection(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmNewPassword: '' });
   };
 
   const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/');
   };
+
+  const avatarInitials = formData.fullName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase() || 'U';
 
   return (
     <>
@@ -60,7 +134,7 @@ function Profile() {
         <div className="card-body">
           {/* Profile Header */}
           <div className="profile-header">
-            <div className="profile-avatar">BS</div>
+            <div className="profile-avatar">{avatarInitials}</div>
             <div className="profile-info">
               <h3>{formData.fullName}</h3>
               <p>{formData.email}</p>
@@ -70,6 +144,8 @@ function Profile() {
 
           {/* Update Profile Form */}
           <form onSubmit={handleProfileUpdate}>
+            {errors.profile && <div className="form-error" style={{ marginBottom: '16px' }}>{errors.profile}</div>}
+
             <div className="form-group">
               <label htmlFor="profileName">Full Name</label>
               <input
@@ -79,6 +155,7 @@ function Profile() {
                 className="form-control"
                 value={formData.fullName}
                 onChange={handleChange}
+                disabled={isLoading}
               />
             </div>
 
@@ -91,6 +168,7 @@ function Profile() {
                 className="form-control"
                 value={formData.email}
                 onChange={handleChange}
+                disabled={isLoading}
               />
             </div>
 
@@ -103,15 +181,19 @@ function Profile() {
                 className="form-control"
                 value={formData.username}
                 onChange={handleChange}
+                disabled={isLoading}
               />
             </div>
 
             <div className="profile-actions">
-              <button type="submit" className="btn btn-primary">Update Profile</button>
+              <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                {isLoading ? 'Updating...' : 'Update Profile'}
+              </button>
               <button
                 type="button"
                 className="btn btn-secondary"
                 onClick={() => setShowPasswordSection(!showPasswordSection)}
+                disabled={isLoading}
               >
                 🔑 Change Password
               </button>
@@ -119,6 +201,7 @@ function Profile() {
                 type="button"
                 className="btn btn-danger"
                 onClick={handleLogout}
+                disabled={isLoading}
               >
                 🚪 Logout
               </button>
@@ -142,6 +225,8 @@ function Profile() {
           </div>
           <div className="card-body">
             <form onSubmit={handlePasswordUpdate}>
+              {errors.password && <div className="form-error" style={{ marginBottom: '16px' }}>{errors.password}</div>}
+
               <div className="form-group">
                 <label htmlFor="currentPassword">Current Password</label>
                 <input
@@ -152,7 +237,9 @@ function Profile() {
                   placeholder="Enter current password"
                   value={passwordData.currentPassword}
                   onChange={handlePasswordChange}
+                  disabled={isLoading}
                 />
+                {errors.currentPassword && <div className="form-error">{errors.currentPassword}</div>}
               </div>
 
               <div className="form-group">
@@ -165,7 +252,9 @@ function Profile() {
                   placeholder="Enter new password"
                   value={passwordData.newPassword}
                   onChange={handlePasswordChange}
+                  disabled={isLoading}
                 />
+                {errors.newPassword && <div className="form-error">{errors.newPassword}</div>}
               </div>
 
               <div className="form-group">
@@ -178,15 +267,20 @@ function Profile() {
                   placeholder="Confirm new password"
                   value={passwordData.confirmNewPassword}
                   onChange={handlePasswordChange}
+                  disabled={isLoading}
                 />
+                {errors.confirmNewPassword && <div className="form-error">{errors.confirmNewPassword}</div>}
               </div>
 
               <div className="form-actions">
-                <button type="submit" className="btn btn-primary">Update Password</button>
+                <button type="submit" className="btn btn-primary" disabled={isLoading}>
+                  {isLoading ? 'Updating...' : 'Update Password'}
+                </button>
                 <button
                   type="button"
                   className="btn btn-secondary"
                   onClick={() => setShowPasswordSection(false)}
+                  disabled={isLoading}
                 >
                   Cancel
                 </button>

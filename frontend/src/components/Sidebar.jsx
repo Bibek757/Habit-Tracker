@@ -5,6 +5,9 @@ function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/');
   };
 

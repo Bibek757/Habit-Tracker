@@ -12,11 +12,13 @@ function HabitCard({ habit, onEdit, onDelete, onComplete }) {
     return map[category] || 'study';
   };
 
+  const isCompleted = habit.status === 'Completed';
+
   return (
-    <div className="habit-card" data-name={habit.name} data-category={habit.category} data-status={habit.status} data-date={habit.startDate}>
+    <div className="habit-card" data-name={habit.habit_name} data-category={habit.category} data-status={habit.status} data-date={habit.start_date}>
       <div className="habit-card-header">
         <div>
-          <h4>{habit.name}</h4>
+          <h4>{habit.habit_name}</h4>
         </div>
         <span className={`category-badge ${getCategoryClass(habit.category)}`}>
           {habit.category}
@@ -28,7 +30,7 @@ function HabitCard({ habit, onEdit, onDelete, onComplete }) {
       <div className="habit-meta">
         <div className="meta-item">
           <span className="meta-icon">📅</span>
-          <span>{habit.startDate}</span>
+          <span>{habit.start_date}</span>
         </div>
         <div className="meta-item">
           <span className="meta-icon">🔄</span>
@@ -36,7 +38,7 @@ function HabitCard({ habit, onEdit, onDelete, onComplete }) {
         </div>
         <div className="meta-item">
           <span className="meta-icon">🔥</span>
-          <span>{habit.streak} day streak</span>
+          <span>{habit.streak_count} day streak</span>
         </div>
         <div className="meta-item">
           <span className="meta-icon">⚡</span>
@@ -45,12 +47,12 @@ function HabitCard({ habit, onEdit, onDelete, onComplete }) {
       </div>
 
       <div className="habit-status">
-        <span className={`status-badge ${habit.status}`}>
-          {habit.status === 'completed' ? 'Completed' : 'Pending'}
+        <span className={`status-badge ${habit.status.toLowerCase()}`}>
+          {isCompleted ? 'Completed' : 'Active'}
         </span>
         <div className="habit-actions">
-          {habit.status !== 'completed' && (
-            <button className="btn btn-success btn-sm" onClick={() => onComplete(habit.id)}>
+          {!isCompleted && (
+            <button className="btn btn-success btn-sm" onClick={() => onComplete(habit.habit_id)}>
               ✓ Complete
             </button>
           )}
