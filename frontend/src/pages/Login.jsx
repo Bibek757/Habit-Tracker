@@ -9,11 +9,13 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    if (errors.submit) setErrors(prev => ({ ...prev, submit: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -33,6 +35,7 @@ function Login() {
     
     if (Object.keys(newErrors).length === 0) {
        setIsLoading(true);
+       setSuccessMessage('');
        try {
          const response = await authAPI.login({
            email: formData.email,
@@ -48,8 +51,12 @@ function Login() {
            email: response.email
          }));
 
-         // Redirect to dashboard
-         navigate('/dashboard');
+         setSuccessMessage('✓ Login successful! Redirecting...');
+         
+         // Redirect to dashboard after 1 second
+         setTimeout(() => {
+           navigate('/dashboard');
+         }, 1000);
       } catch (error) {
         const errorMessage = error.response?.data?.message || 'Login failed. Please check your credentials.';
         setErrors({ submit: errorMessage });
@@ -65,31 +72,60 @@ function Login() {
       <div className="auth-container">
         <div className="auth-card">
           <div className="auth-logo">
-            <span className="logo-icon">📋</span>
-            <h1>Habit Tracker System</h1>
-            <p>Track your habits, build better routines</p>
+            <span className="logo-icon">✓</span>
+            <h1>Welcome Back</h1>
+            <p>Login to continue building better habits</p>
           </div>
 
           <form onSubmit={handleSubmit} id="loginForm">
-            {errors.submit && <div className="form-error" style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8d7da', borderRadius: '4px' }}>{errors.submit}</div>}
+            {errors.submit && (
+              <div style={{ 
+                marginBottom: '16px', 
+                padding: '14px 16px', 
+                backgroundColor: '#fee', 
+                borderRadius: '10px',
+                color: '#c33',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: '1px solid #fcc'
+              }}>
+                ⚠️ {errors.submit}
+              </div>
+            )}
+
+            {successMessage && (
+              <div style={{ 
+                marginBottom: '16px', 
+                padding: '14px 16px', 
+                backgroundColor: '#efe', 
+                borderRadius: '10px',
+                color: '#3c3',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: '1px solid #cfc'
+              }}>
+                {successMessage}
+              </div>
+            )}
             
             <div className="form-group">
-              <label htmlFor="loginEmail">Email / Username</label>
+              <label htmlFor="loginEmail">📧 Email or Username</label>
               <input
                 type="text"
                 id="loginEmail"
                 name="email"
                 className="form-control"
-                placeholder="Enter your email or username"
+                placeholder="test@example.com or testuser"
                 value={formData.email}
                 onChange={handleChange}
                 disabled={isLoading}
+                autoComplete="email"
               />
-              {errors.email && <div className="form-error">{errors.email}</div>}
+              {errors.email && <div className="form-error">❌ {errors.email}</div>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="loginPassword">Password</label>
+              <label htmlFor="loginPassword">🔐 Password</label>
               <div className="input-group">
                 <input
                   type={showPassword ? 'text' : 'password'}
@@ -100,6 +136,7 @@ function Login() {
                   value={formData.password}
                   onChange={handleChange}
                   disabled={isLoading}
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"
@@ -111,7 +148,7 @@ function Login() {
                   {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
-              {errors.password && <div className="form-error">{errors.password}</div>}
+              {errors.password && <div className="form-error">❌ {errors.password}</div>}
             </div>
 
             <div className="forgot-password">
@@ -119,17 +156,17 @@ function Login() {
             </div>
 
             <button type="submit" className="btn btn-primary btn-block btn-lg" id="loginBtn" disabled={isLoading}>
-              {isLoading ? 'Logging in...' : 'Login'}
+              {isLoading ? '⏳ Logging in...' : '🚀 Login'}
             </button>
           </form>
 
           <div className="auth-footer">
-            Don't have an account? <Link to="/register">Register</Link>
+            Don't have an account? <Link to="/register">Create one now</Link>
           </div>
         </div>
 
         <div className="page-footer">
-          <p>Habit Tracker System &copy; 2026 | University Student Project</p>
+          <p>Habit Tracker System &copy; 2026 | Build Better Habits Today</p>
         </div>
       </div>
     </div>

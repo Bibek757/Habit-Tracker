@@ -16,11 +16,13 @@ function Register() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
+    if (errors.submit) setErrors(prev => ({ ...prev, submit: '' }));
   };
 
   const handleSubmit = async (e) => {
@@ -51,6 +53,7 @@ function Register() {
 
     if (Object.keys(newErrors).length === 0) {
       setIsLoading(true);
+      setSuccessMessage('');
       try {
         await authAPI.register({
           full_name: formData.fullName,
@@ -59,8 +62,12 @@ function Register() {
           password: formData.password,
         });
 
-        // Redirect to login
-        navigate('/', { replace: true });
+        setSuccessMessage('✓ Account created successfully! Redirecting to login...');
+
+        // Redirect to login after 2 seconds
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 2000);
       } catch (error) {
         const errorMessage = error.response?.data?.message || 'Registration failed. Please try again.';
         setErrors({ submit: errorMessage });
@@ -76,71 +83,103 @@ function Register() {
       <div className="auth-container wide">
         <div className="auth-card">
           <div className="auth-logo">
-            <span className="logo-icon">📋</span>
+            <span className="logo-icon">🎯</span>
             <h1>Create Account</h1>
-            <p>Start building better habits today</p>
+            <p>Join 1000+ habit builders transforming their lives</p>
           </div>
 
           <form onSubmit={handleSubmit} id="registerForm">
-            {errors.submit && <div className="form-error" style={{ marginBottom: '16px', padding: '12px', backgroundColor: '#f8d7da', borderRadius: '4px' }}>{errors.submit}</div>}
+            {errors.submit && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '14px 16px',
+                backgroundColor: '#fee',
+                borderRadius: '10px',
+                color: '#c33',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: '1px solid #fcc'
+              }}>
+                ⚠️ {errors.submit}
+              </div>
+            )}
+
+            {successMessage && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '14px 16px',
+                backgroundColor: '#efe',
+                borderRadius: '10px',
+                color: '#3c3',
+                fontSize: '14px',
+                fontWeight: '500',
+                border: '1px solid #cfc'
+              }}>
+                {successMessage}
+              </div>
+            )}
 
             <div className="form-group">
-              <label htmlFor="regFullname">Full Name</label>
+              <label htmlFor="regFullname">👤 Full Name</label>
               <input
                 type="text"
                 id="regFullname"
                 name="fullName"
                 className="form-control"
-                placeholder="Enter your full name"
+                placeholder="John Doe"
                 value={formData.fullName}
                 onChange={handleChange}
                 disabled={isLoading}
+                autoComplete="name"
               />
-              {errors.fullName && <div className="form-error">{errors.fullName}</div>}
+              {errors.fullName && <div className="form-error">❌ {errors.fullName}</div>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="regEmail">Email Address</label>
+              <label htmlFor="regEmail">📧 Email Address</label>
               <input
                 type="email"
                 id="regEmail"
                 name="email"
                 className="form-control"
-                placeholder="Enter your email address"
+                placeholder="you@example.com"
                 value={formData.email}
                 onChange={handleChange}
                 disabled={isLoading}
+                autoComplete="email"
               />
-              {errors.email && <div className="form-error">{errors.email}</div>}
+              {errors.email && <div className="form-error">❌ {errors.email}</div>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="regUsername">Username</label>
+              <label htmlFor="regUsername">👾 Username</label>
               <input
                 type="text"
                 id="regUsername"
                 name="username"
                 className="form-control"
-                placeholder="Choose a username"
+                placeholder="your_username"
                 value={formData.username}
                 onChange={handleChange}
                 disabled={isLoading}
+                autoComplete="username"
               />
-              {errors.username && <div className="form-error">{errors.username}</div>}
+              {errors.username && <div className="form-error">❌ {errors.username}</div>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="regPassword">Password</label>
+              <label htmlFor="regPassword">🔐 Password</label>
               <div className="input-group">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="regPassword"
                   name="password"
                   className="form-control"
-                  placeholder="Create a password"
+                  placeholder="Create a strong password"
                   value={formData.password}
                   onChange={handleChange}
                   disabled={isLoading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -151,11 +190,11 @@ function Register() {
                   {showPassword ? '🙈' : '👁️'}
                 </button>
               </div>
-              {errors.password && <div className="form-error">{errors.password}</div>}
+              {errors.password && <div className="form-error">❌ {errors.password}</div>}
             </div>
 
             <div className="form-group">
-              <label htmlFor="regConfirmPassword">Confirm Password</label>
+              <label htmlFor="regConfirmPassword">🔐 Confirm Password</label>
               <div className="input-group">
                 <input
                   type={showConfirm ? 'text' : 'password'}
@@ -166,6 +205,7 @@ function Register() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   disabled={isLoading}
+                  autoComplete="new-password"
                 />
                 <button
                   type="button"
@@ -176,21 +216,21 @@ function Register() {
                   {showConfirm ? '🙈' : '👁️'}
                 </button>
               </div>
-              {errors.confirmPassword && <div className="form-error">{errors.confirmPassword}</div>}
+              {errors.confirmPassword && <div className="form-error">❌ {errors.confirmPassword}</div>}
             </div>
 
             <button type="submit" className="btn btn-primary btn-block btn-lg" id="registerBtn" disabled={isLoading}>
-              {isLoading ? 'Creating account...' : 'Register'}
+              {isLoading ? '⏳ Creating account...' : '🚀 Create Account'}
             </button>
           </form>
 
           <div className="auth-footer">
-            Already have an account? <Link to="/">Login</Link>
+            Already have an account? <Link to="/">Login here</Link>
           </div>
         </div>
 
         <div className="page-footer">
-          <p>Habit Tracker System &copy; 2026 | University Student Project</p>
+          <p>Habit Tracker System &copy; 2026 | Build Better Habits Today</p>
         </div>
       </div>
     </div>
